@@ -32,13 +32,13 @@ function Create({ marketplace, address, correctNetwork }) {
 
   const handleEvent = async (e) => {
     e.preventDefault();
-    if(forminfo.apartments < 1) {
+    if (forminfo.apartments < 1) {
       toast.info("Building must have atleast 1 apartment", {
         position: "top-center"
       })
       return
     }
-    if(forminfo.price <= 0) {
+    if (forminfo.price <= 0) {
       toast.info("Enter a valid price for the apartments", {
         position: "top-center"
       })
@@ -53,91 +53,91 @@ function Create({ marketplace, address, correctNetwork }) {
     formData.append('file', nftimage);
 
     const metadata = JSON.stringify({
-        name: forminfo.title,
-        description: forminfo.description
+      name: forminfo.title,
+      description: forminfo.description
     });
     jsonformData.append('pinataMetadata', metadata);
-    
+
     const options = JSON.stringify({
-        cidVersion: 0,
+      cidVersion: 0,
     })
     jsonformData.append('pinataOptions', options);
 
-    try{
+    try {
 
-        const resFile = await axios({
-            method: "post",
-            url: "https://api.pinata.cloud/pinning/pinFileToIPFS",
-            data: formData,
-            headers: {
-              pinata_api_key: `0a13ef76fb9e01561e05`,
-              pinata_secret_api_key: `f0a2d096004e4f0483a64d06236ddc252b8d8acf612cde6465bc78f013a08ab0`,
-              "Content-Type": "multipart/form-data",
-            },
-          });
+      const resFile = await axios({
+        method: "post",
+        url: "https://api.pinata.cloud/pinning/pinFileToIPFS",
+        data: formData,
+        headers: {
+          pinata_api_key: `0a13ef76fb9e01561e05`,
+          pinata_secret_api_key: `f0a2d096004e4f0483a64d06236ddc252b8d8acf612cde6465bc78f013a08ab0`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-        console.log(resFile.data);
+      console.log(resFile.data);
 
-        const ImgHash = `https://gateway.pinata.cloud/ipfs/${resFile.data.IpfsHash}`;
+      const ImgHash = `https://gateway.pinata.cloud/ipfs/${resFile.data.IpfsHash}`;
 
-        const info ={
-            name: forminfo.title,
-            description: forminfo.description,
-            image: ImgHash,
-            price: forminfo.price,
-            // price: ethers.utils.parseEther(forminfo.price),
-            owner:address,
-            apartments: forminfo.apartments
-        }
-
-        async function pinJSONToPinata(info) {
-            const url = 'https://api.pinata.cloud/pinning/pinJSONToIPFS';
-            const headers = {
-                'Content-Type': 'application/json',
-                'pinata_api_key': `0a13ef76fb9e01561e05`,
-                'pinata_secret_api_key': `f0a2d096004e4f0483a64d06236ddc252b8d8acf612cde6465bc78f013a08ab0`
-            };
-
-            try {
-                const res = await axios.post(url, info, { headers });
-                const meta = `https://gateway.pinata.cloud/ipfs/${res.data.IpfsHash}`
-                console.log(meta);
-                mintThenList(meta);
-            } catch (error) {
-                console.error(error);
-            }
-
-        }
-    
-     pinJSONToPinata(info)
-    
-      } catch (error) {
-        console.log(error);
+      const info = {
+        name: forminfo.title,
+        description: forminfo.description,
+        image: ImgHash,
+        price: forminfo.price,
+        // price: ethers.utils.parseEther(forminfo.price),
+        owner: address,
+        apartments: forminfo.apartments
       }
-    
+
+      async function pinJSONToPinata(info) {
+        const url = 'https://api.pinata.cloud/pinning/pinJSONToIPFS';
+        const headers = {
+          'Content-Type': 'application/json',
+          'pinata_api_key': `0a13ef76fb9e01561e05`,
+          'pinata_secret_api_key': `f0a2d096004e4f0483a64d06236ddc252b8d8acf612cde6465bc78f013a08ab0`
+        };
+
+        try {
+          const res = await axios.post(url, info, { headers });
+          const meta = `https://gateway.pinata.cloud/ipfs/${res.data.IpfsHash}`
+          console.log(meta);
+          mintThenList(meta);
+        } catch (error) {
+          console.error(error);
+        }
+
+      }
+
+      pinJSONToPinata(info)
+
+    } catch (error) {
+      console.log(error);
+    }
+
   };
 
 
-  const mintThenList = async (uri) => { 
+  const mintThenList = async (uri) => {
     toast.info("Confirm to Mint the Building", {
       position: "top-center"
     })
 
-  const listingPrice = ethers.utils.parseEther(forminfo.price.toString())
-  try {
-    const tx1=  await(await marketplace.listBuilding(forminfo.apartments, listingPrice, uri))
-    // const tx1=  await(await marketplace.listBuilding(forminfo.apartments, ethers.utils.parseEther(forminfo.price), uri))
-  
-    toast.info("Wait till transaction Confirms....", {
-      position: "top-center"
-    })
-  
-    await tx1.wait()
-    toast.success("Building added to marketplace successfully", {position:"top-center"})
-  } catch (error) {
-    toast.error("Error adding NFT to Marketplace")
-    console.log(error);
-  }
+    const listingPrice = ethers.utils.parseEther(forminfo.price.toString())
+    try {
+      const tx1 = await (await marketplace.listBuilding(forminfo.apartments, listingPrice, uri))
+      // const tx1=  await(await marketplace.listBuilding(forminfo.apartments, ethers.utils.parseEther(forminfo.price), uri))
+
+      toast.info("Wait till transaction Confirms....", {
+        position: "top-center"
+      })
+
+      await tx1.wait()
+      toast.success("Building added to marketplace successfully", { position: "top-center" })
+    } catch (error) {
+      toast.error("Error adding NFT to Marketplace")
+      console.log(error);
+    }
 
   }
 
